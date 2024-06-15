@@ -38,6 +38,8 @@ public class Bot extends TelegramLongPollingBot {
 
     List<Subscriptions> subs = new ArrayList<>();
 
+    String currentTask = "-";
+
     @Override
     public void onUpdateReceived(Update update) {
 
@@ -78,6 +80,12 @@ public class Bot extends TelegramLongPollingBot {
                     response += sub.getPrice() + " USD\n";
                     }
                 }
+            } else if (message.getText().equals("/subscribe")) {
+                currentTask = "subscribe";
+                response = "Введите цену на которую хотите подписаться: ";
+            }else if (message.getText().equals("/unsubscribe")) {
+                currentTask = "unsubscribe";
+                response = "Введите цену от которой хотите отписаться: ";
             }else if (message.getText().contains("/unsubscribe") && !message.getText().equals("/unsubscribe")){
                 String argument = message.getText().substring(13);
 
@@ -90,7 +98,6 @@ public class Bot extends TelegramLongPollingBot {
                         session.remove(sub);
                     }
                 }
-
             } else if (message.getText().equals("/get_price")){
                 String url = "https://api.binance.com/api/v3/avgPrice?symbol=BTCUSDT";
                 try {
@@ -120,7 +127,26 @@ public class Bot extends TelegramLongPollingBot {
                     e.printStackTrace();
                 }
             } else {
-                response = "Неизвестная команда.";
+                if (currentTask == "subscribe"){
+                    Subscriptions sub = new Subscriptions(message.getText(), chatId);
+                    subs.add(sub);
+                    session.save(sub);
+                    response = "Вы подписались на цену в " + message.getText() + " USD";
+                    currentTask = "-";
+                } else if (currentTask == "unsubscribe"){
+                    Iterator<Subscriptions> iterator = subs.iterator();
+                    while (iterator.hasNext()) {
+                        Subscriptions sub = iterator.next();
+                        if (sub.getPrice().equals(message.getText()) && sub.getUser().equals(chatId)) {
+                            iterator.remove();
+                            response = "Подписка на цену " + message.getText() + " USD удалена.";
+                            session.remove(sub);
+                        }
+                    }
+                    currentTask = "-";
+                } else {
+                    response = "Неизвестная команда.";
+                }
             }
 
             SendMessage sendMessage = new SendMessage();
@@ -136,4 +162,5 @@ public class Bot extends TelegramLongPollingBot {
         transaction.commit();
         sessionFactory.close();
     }
+
 }
