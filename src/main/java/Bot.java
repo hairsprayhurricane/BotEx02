@@ -40,6 +40,19 @@ public class Bot extends TelegramLongPollingBot {
 
     String currentTask = "-";
 
+    public void sendMessage(String chatId, String text) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(chatId);
+        sendMessage.setText(text);
+
+        try {
+            execute(sendMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
     @Override
     public void onUpdateReceived(Update update) {
 
@@ -99,33 +112,7 @@ public class Bot extends TelegramLongPollingBot {
                     }
                 }
             } else if (message.getText().equals("/get_price")){
-                String url = "https://api.binance.com/api/v3/avgPrice?symbol=BTCUSDT";
-                try {
-                    URL obj = new URL(url);
-                    HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-
-                    con.setRequestMethod("GET");
-
-                    int responseCode = con.getResponseCode();
-                    System.out.println("Response Code : " + responseCode);
-
-                    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                    String inputLine;
-                    StringBuilder response2 = new StringBuilder();
-
-                    while ((inputLine = in.readLine()) != null) {
-                        response2.append(inputLine);
-                    }
-                    in.close();
-
-                    JSONObject myResponse = new JSONObject(response2.toString());
-                    String price = myResponse.getString("price");
-
-                    response = "Текущая цена биткоина: " + price + " USD";
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                response = "Текущая цена биткоина: " + BitPrice.getPrice() + " USD";
             } else {
                 if (currentTask == "subscribe"){
                     Subscriptions sub = new Subscriptions(message.getText(), chatId);
