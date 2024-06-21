@@ -53,7 +53,7 @@ public class Main {
                     int bitPrice = (int) Math.round(bitPriceDouble);
                     System.out.println(subPrice + " " + bitPrice);
 
-                    if (subPrice >= bitPrice) {
+                    if (subPrice <= bitPrice) {
                         bot.sendMessage(sub.getUser(), "Внимание! Цена биткоина " + BitPrice.getPrice());
                     }
 
